@@ -8,7 +8,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            background: #050510;
+            background: #080710;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
         }
@@ -27,150 +27,125 @@
             box-sizing: border-box;
         }
         .banner {
-            background: rgba(20, 20, 35, 0.85);
+            background: rgba(25, 20, 40, 0.85);
             border: 2px solid #ffb703;
-            padding: 12px 30px;
+            padding: 12px 28px;
             border-radius: 30px;
-            color: #ffeedb;
-            font-size: 22px;
+            color: #fff;
+            font-size: 20px;
             font-weight: bold;
             box-shadow: 0 0 20px rgba(255, 183, 3, 0.4);
             text-align: center;
             pointer-events: auto;
-            backdrop-filter: blur(5px);
-            animation: pulse 2s infinite;
+            backdrop-filter: blur(6px);
+            animation: glow 2s infinite alternate;
         }
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 183, 3, 0.4); }
-            50% { transform: scale(1.03); box-shadow: 0 0 25px rgba(255, 183, 3, 0.7); }
-            100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 183, 3, 0.4); }
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(255, 183, 3, 0.4); }
+            to { box-shadow: 0 0 25px rgba(255, 183, 3, 0.8); }
         }
         .controls {
             pointer-events: auto;
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
         button {
             background: linear-gradient(135deg, #ff7b00, #ffb703);
             border: none;
-            padding: 12px 24px;
+            padding: 12px 22px;
             color: #fff;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 25px;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: 0.2s ease;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(255, 123, 0, 0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
         }
         button:active {
-            transform: translateY(1px);
+            transform: scale(0.95);
         }
-        #loader {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #050510;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #ffb703;
-            font-size: 24px;
-            z-index: 10;
-            transition: opacity 0.5s;
-        }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 5px solid rgba(255,183,3,0.2);
-            border-top: 5px solid #ffb703;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
-    <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-    <div id="loader">
-        <div class="spinner"></div>
-        <div>Loading Magical World... ✨</div>
-    </div>
 
     <div id="ui-layer">
         <div class="banner">✨ Bestie &bull; Forever Partner in Crime ✨</div>
         <div class="controls">
-            <button onclick="triggerFireworks()">🎆 Burst Fireworks</button>
+            <button onclick="triggerFireworks()">🎆 Phuljhadi / Sparkles</button>
             <button onclick="toggleMusic()">🎵 Play Music</button>
         </div>
     </div>
 
     <script>
         let scene, camera, renderer, avatars, lanterns = [], fireworks = [];
-        let isMusicPlaying = false;
-        let audioCtx;
+        let isMusicPlaying = false, audioCtx;
 
         function init() {
-            // Scene Setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050512);
-            scene.fog = new THREE.FogExp2(0x050512, 0.025);
+            scene.background = new THREE.Color(0x080710);
+            scene.fog = new THREE.FogExp2(0x080710, 0.02);
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 5, 12);
+            camera.position.set(0, 4.5, 11);
             camera.lookAt(0, 2, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.shadowMap.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffeedb, 0.7);
-            scene.add(ambientLight);
+            // Lights
+            const ambient = new THREE.AmbientLight(0xffeedb, 0.8);
+            scene.add(ambient);
 
-            const dirLight = new THREE.DirectionalLight(0xffaa55, 1.2);
-            dirLight.position.set(10, 20, 10);
-            dirLight.castShadow = true;
-            scene.add(dirLight);
+            const mainLight = new THREE.DirectionalLight(0xffaa44, 1.2);
+            mainLight.position.set(5, 15, 8);
+            scene.add(mainLight);
 
-            createEnvironment();
-            createAvatars();
-            createLanterns();
-
-            // Hide Loader
-            document.getElementById('loader').style.opacity = 0;
-            setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            buildScene();
+            buildAvatars();
+            buildLanterns();
 
             window.addEventListener('resize', onWindowResize);
             animate();
         }
 
-        // Environment (Street, Buildings, Diyas)
-        function createEnvironment() {
-            // Ground
-            const floorGeo = new THREE.PlaneGeometry(50, 50);
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.8 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+        function buildScene() {
+            // Cobblestone ground
+            const groundGeo = new THREE.PlaneGeometry(40, 40);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x181528, roughness: 0.7 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            scene.add(ground);
 
-            // Colorful Buildings on sides
-            const buildingColors = [0xff5722, 0xe91e63, 0x9c27b0, 0x3f51b5, 0x00bcd4];
-            for (let i = -20; i <= 20; i += 4) {
+            // Buildings
+            const colors = [0xd97706, 0xbe185d, 0x6d28d9, 0x0284c7, 0x059669];
+            for (let i = -16; i <= 16; i += 4) {
                 if (Math.abs(i) < 4) continue;
-                createBuilding(i, -10, buildingColors[Math.floor(Math.random() * buildingColors.length)]);
-                createBuilding(i, 10, buildingColors[Math.floor(Math.random() * buildingColors.length)]);
+                createHouse(i, -8, colors[Math.floor(Math.random() * colors.length)]);
+                createHouse(i, 8, colors[Math.floor(Math.random() * colors.length)]);
             }
         }
 
-        function createBuilding(x, z, color) {
+        function createHouse(x, z, color) {
+            const h = 7 + Math.random() * 5;
+            const geo = new THREE.BoxGeometry(3.2, h, 3.2);
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5 });
+            const house = new THREE.Mesh(geo, mat);
+            house.position.set(x, h / 2, z);
+            scene.add(house);
 
-      
+            // Diya Warm Glow
+            const light = new THREE.PointLight(0xff9900, 1, 5);
+            light.position.set(x, h - 1, z + (z > 0 ? -1.7 : 1.7));
+            scene.add(light);
+        }
+
+        function buildAvatars() {
+            avatars = new THREE.Group();
+
+            // Avatar 1 (Boy / Friend)
+            const body1 = new THREE.Mesh(
+                
